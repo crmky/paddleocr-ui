@@ -496,6 +496,7 @@ source = { editable = "." }
 dependencies = [
     { name = "gradio" },
     { name = "pillow" },
+    { name = "pip-system-certs" },
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
@@ -509,6 +510,7 @@ dev = [
 requires-dist = [
     { name = "gradio", specifier = ">=5.0.0" },
     { name = "pillow", specifier = ">=10.0.0" },
+    { name = "pip-system-certs" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "requests", specifier = ">=2.31.0" },
 ]
@@ -576,6 +578,27 @@ wheels = [
     { url = "https://nexus.home/repository/pypi/packages/pillow/12.1.1/pillow-12.1.1-cp314-cp314t-win32.whl", hash = "sha256:d2912fd8114fc5545aa3a4b5576512f64c55a03f3ebcca4c10194d593d43ea36" },
     { url = "https://nexus.home/repository/pypi/packages/pillow/12.1.1/pillow-12.1.1-cp314-cp314t-win_amd64.whl", hash = "sha256:4ceb838d4bd9dab43e06c363cab2eebf63846d6a4aeaea283bbdfd8f1a8ed58b" },
     { url = "https://nexus.home/repository/pypi/packages/pillow/12.1.1/pillow-12.1.1-cp314-cp314t-win_arm64.whl", hash = "sha256:7b03048319bfc6170e93bd60728a1af51d3dd7704935feb228c4d4faab35d334" },
+]
+
+[[package]]
+name = "pip"
+version = "26.0.1"
+source = { registry = "https://nexus.home/repository/pypi/simple" }
+sdist = { url = "https://nexus.home/repository/pypi/packages/pip/26.0.1/pip-26.0.1.tar.gz", hash = "sha256:c4037d8a277c89b320abe636d59f91e6d0922d08a05b60e85e53b296613346d8" }
+wheels = [
+    { url = "https://nexus.home/repository/pypi/packages/pip/26.0.1/pip-26.0.1-py3-none-any.whl", hash = "sha256:bdb1b08f4274833d62c1aa29e20907365a2ceb950410df15fc9521bad440122b" },
+]
+
+[[package]]
+name = "pip-system-certs"
+version = "5.3"
+source = { registry = "https://nexus.home/repository/pypi/simple" }
+dependencies = [
+    { name = "pip" },
+]
+sdist = { url = "https://nexus.home/repository/pypi/packages/pip-system-certs/5.3/pip_system_certs-5.3.tar.gz", hash = "sha256:19c8bf9957bcce7d69c4dbc2d0b2ef13de1984d53f50a59012e6dbbad0af67c6" }
+wheels = [
+    { url = "https://nexus.home/repository/pypi/packages/pip-system-certs/5.3/pip_system_certs-5.3-py3-none-any.whl", hash = "sha256:3fbb5de62e374a99b688b1ad06e64ee5c4aeb633ef23e3a677d32e3e84fd863c" },
 ]
 
 [[package]]

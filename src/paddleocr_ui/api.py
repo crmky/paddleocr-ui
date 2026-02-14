@@ -71,7 +71,7 @@ def call_api(
             settings.api_url,
             json=payload,
             headers=settings.get_headers(),
-            timeout=120
+            timeout=120,
         )
         resp.raise_for_status()
         data = resp.json()
