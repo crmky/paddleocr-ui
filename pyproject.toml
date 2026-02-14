@@ -8,10 +8,12 @@ dependencies = [
     "gradio>=5.0.0",
     "pillow>=10.0.0",
     "requests>=2.31.0",
+    "pydantic-settings>=2.0.0",
 ]
 
 [project.scripts]
 paddleocr-ui = "paddleocr_ui:main"
+
 
 [build-system]
 requires = ["hatchling"]
@@ -19,3 +21,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/paddleocr_ui"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+

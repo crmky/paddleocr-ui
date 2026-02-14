@@ -7,18 +7,15 @@ import io
 import json
 import os
 import re
-from typing import Dict, List, Tuple, Any, Optional
 import time
-import requests
-from PIL import Image
-import gradio as gr
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
+import gradio as gr
+import requests
+from PIL import Image
 
-# Configuration (set via command line arguments)
-API_URL = "http://paddleocr.home/layout-parsing"
-API_KEY = ""
-DEBUG = False
+from paddleocr_ui.config import Settings, get_cli_settings
 
 # LaTeX delimiters for formula rendering
 LATEX_DELIMITERS = [
@@ -29,9 +26,6 @@ LATEX_DELIMITERS = [
 ]
 
 # Request headers
-HEADERS = {"Content-Type": "application/json"}
-
-
 def image_to_base64_data_url(filepath: str) -> str:
     """Convert local image file to base64 data URL."""
     try:
@@ -139,8 +133,12 @@ def call_api(
     use_chart_recognition: bool = False,
     use_doc_unwarping: bool = True,
     use_doc_orientation_classify: bool = True,
+    settings: Optional[Settings] = None,
 ) -> Dict[str, Any]:
     """Call the PaddleOCR API with the given parameters."""
+    if settings is None:
+        settings = Settings()
+    
     is_url = isinstance(path_or_url, str) and path_or_url.startswith(("http://", "https://"))
 
     if is_url:
@@ -169,7 +167,7 @@ def call_api(
         payload["useChartRecognition"] = True
 
     # Debug: dump request payload
-    if DEBUG:
+    if settings.debug:
         print("=" * 60)
         print("DEBUG: API Request Payload")
         print("=" * 60)
@@ -184,13 +182,18 @@ def call_api(
         print("=" * 60)
 
     try:
-        print(f"Sending API request to {API_URL}...")
-        resp = requests.post(API_URL, json=payload, headers=HEADERS, timeout=120)
+        print(f"Sending API request to {settings.api_url}...")
+        resp = requests.post(
+            settings.api_url,
+            json=payload,
+            headers=settings.get_headers(),
+            timeout=120
+        )
         resp.raise_for_status()
         data = resp.json()
         
         # Debug: dump response
-        if DEBUG:
+        if settings.debug:
             print("-" * 60)
             print("DEBUG: API Response")
             print("-" * 60)
@@ -298,6 +301,7 @@ def handle_document_parsing(
     use_chart_recognition: bool,
     use_doc_unwarping: bool,
     use_doc_orientation_classify: bool,
+    settings: Optional[Settings] = None,
 ) -> Tuple[str, str, str]:
     """Handle document parsing mode."""
     if not path_or_url:
@@ -310,6 +314,7 @@ def handle_document_parsing(
         use_chart_recognition=use_chart_recognition,
         use_doc_unwarping=use_doc_unwarping,
         use_doc_orientation_classify=use_doc_orientation_classify,
+        settings=settings,
     )
     result = data.get("result", {})
     return process_api_response(result)
@@ -318,6 +323,7 @@ def handle_document_parsing(
 def handle_targeted_recognition(
     path_or_url: str,
     prompt_choice: str,
+    settings: Optional[Settings] = None,
 ) -> Tuple[str, str, str]:
     """Handle targeted recognition mode (OCR, formula, table, etc.)."""
     if not path_or_url:
@@ -339,6 +345,7 @@ def handle_targeted_recognition(
         prompt_label=label,
         use_doc_unwarping=False,
         use_doc_orientation_classify=False,
+        settings=settings,
     )
     result = data.get("result", {})
 
@@ -705,13 +712,18 @@ button.secondary:hover {
 """
 
 
-def create_app() -> Tuple[gr.Blocks, Dict[str, Any]]:
+def create_app(settings: Optional[Settings] = None) -> Tuple[gr.Blocks, Dict[str, Any]]:
     """Create and configure the Gradio application.
     
+    Args:
+        settings: Application settings. If None, uses default settings.
+        
     Returns:
         A tuple of (demo, launch_kwargs) where launch_kwargs contains
         theme, css, and other parameters for launch() method.
     """
+    if settings is None:
+        settings = Settings()
     
     # Gradio 6.0+: css and theme go to launch(), title stays in Blocks()
     launch_kwargs = {
@@ -811,8 +823,11 @@ def create_app() -> Tuple[gr.Blocks, Dict[str, Any]]:
                     outputs=btn_parse,
                 )
                 
+                def handle_doc_wrapper(path, chart, unwarp, orient):
+                    return handle_document_parsing(path, chart, unwarp, orient, settings)
+                
                 btn_parse.click(
-                    fn=handle_document_parsing,
+                    fn=handle_doc_wrapper,
                     inputs=[
                         file_doc,
                         chart_switch,
@@ -898,9 +913,12 @@ def create_app() -> Tuple[gr.Blocks, Dict[str, Any]]:
                     (btn_seal, "Seal Recognition"),
                 ]
                 
+                def handle_vl_wrapper(path, prompt):
+                    return handle_targeted_recognition(path, prompt, settings)
+                
                 for btn, prompt in recognition_mapping:
                     btn.click(
-                        fn=handle_targeted_recognition,
+                        fn=handle_vl_wrapper,
                         inputs=[file_vl, gr.State(prompt)],
                         outputs=[md_preview_vl, md_raw_vl, gr.HTML(visible=False)],
                     )
@@ -968,7 +986,7 @@ def create_app() -> Tuple[gr.Blocks, Dict[str, Any]]:
                 def run_spotting_wrapper(file_path):
                     """Wrapper for spotting mode."""
                     _, json_res, vis_res = handle_targeted_recognition(
-                        file_path, "Spotting"
+                        file_path, "Spotting", settings
                     )
                     return vis_res, json_res
                 
@@ -983,73 +1001,26 @@ def create_app() -> Tuple[gr.Blocks, Dict[str, Any]]:
 
 
 def main():
-    """Main entry point."""
-    import argparse
+    """Main entry point.
     
-    parser = argparse.ArgumentParser(description="PaddleOCR-VL Web UI")
-    parser.add_argument(
-        "--host",
-        type=str,
-        default="0.0.0.0",
-        help="Host to bind to (default: 0.0.0.0)",
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=7860,
-        help="Port to bind to (default: 7860)",
-    )
-    parser.add_argument(
-        "--share",
-        action="store_true",
-        help="Create a public shareable link",
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug mode to log API requests and responses",
-    )
-    parser.add_argument(
-        "--api-url",
-        type=str,
-        default="http://paddleocr.home/layout-parsing",
-        help="API endpoint URL (default: http://paddleocr.home/layout-parsing)",
-    )
-    parser.add_argument(
-        "--api-key",
-        type=str,
-        default="",
-        help="API key for authentication (optional)",
-    )
-    args = parser.parse_args()
+    Settings are automatically parsed from command line arguments.
+    Use --help to see all available options.
+    """
+    # Settings are parsed from CLI arguments
+    settings = get_cli_settings()
     
-    # Set global configuration from command line arguments
-    global API_URL, API_KEY, DEBUG, HEADERS
-    API_URL = args.api_url
-    API_KEY = args.api_key
-    DEBUG = args.debug
-    
-    # Update headers with API key if provided
-    if API_KEY:
-        HEADERS["Authorization"] = f"Bearer {API_KEY}"
-    
-    if DEBUG:
+    if settings.debug:
         print("🐛 Debug mode enabled")
     
     print(f"🚀 Starting PaddleOCR-VL Web UI...")
-    print(f"   URL: http://{args.host}:{args.port}")
-    print(f"   API: {API_URL}")
+    print(f"   URL: http://{settings.host}:{settings.port}")
+    print(f"   API: {settings.api_url}")
     
     # Create and launch the app
-    app, launch_kwargs = create_app()
+    app, launch_kwargs = create_app(settings)
     
     # Add server settings to launch kwargs
-    launch_kwargs.update({
-        "server_name": args.host,
-        "server_port": args.port,
-        "share": args.share,
-        "show_error": True,
-    })
+    launch_kwargs.update(settings.to_launch_kwargs())
     
     app.launch(**launch_kwargs)
 

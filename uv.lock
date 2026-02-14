@@ -186,11 +186,11 @@ wheels = [
 
 [[package]]
 name = "filelock"
-version = "3.21.2"
+version = "3.23.0"
 source = { registry = "https://nexus.home/repository/pypi/simple" }
-sdist = { url = "https://nexus.home/repository/pypi/packages/filelock/3.21.2/filelock-3.21.2.tar.gz", hash = "sha256:cfd218cfccf8b947fce7837da312ec3359d10ef2a47c8602edd59e0bacffb708" }
+sdist = { url = "https://nexus.home/repository/pypi/packages/filelock/3.23.0/filelock-3.23.0.tar.gz", hash = "sha256:f64442f6f4707b9385049bb490be0bc48e3ab8e74ad27d4063435252917f4d4b" }
 wheels = [
-    { url = "https://nexus.home/repository/pypi/packages/filelock/3.21.2/filelock-3.21.2-py3-none-any.whl", hash = "sha256:d6cd4dbef3e1bb63bc16500fc5aa100f16e405bbff3fb4231711851be50c1560" },
+    { url = "https://nexus.home/repository/pypi/packages/filelock/3.23.0/filelock-3.23.0-py3-none-any.whl", hash = "sha256:4203c3f43983c7c95e4bbb68786f184f6acb7300899bf99d686bb82d526bdf62" },
 ]
 
 [[package]]
@@ -357,6 +357,15 @@ wheels = [
 ]
 
 [[package]]
+name = "iniconfig"
+version = "2.3.0"
+source = { registry = "https://nexus.home/repository/pypi/simple" }
+sdist = { url = "https://nexus.home/repository/pypi/packages/iniconfig/2.3.0/iniconfig-2.3.0.tar.gz", hash = "sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730" }
+wheels = [
+    { url = "https://nexus.home/repository/pypi/packages/iniconfig/2.3.0/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12" },
+]
+
+[[package]]
 name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://nexus.home/repository/pypi/simple" }
@@ -487,15 +496,25 @@ source = { editable = "." }
 dependencies = [
     { name = "gradio" },
     { name = "pillow" },
+    { name = "pydantic-settings" },
     { name = "requests" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "gradio", specifier = ">=5.0.0" },
     { name = "pillow", specifier = ">=10.0.0" },
+    { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "requests", specifier = ">=2.31.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "pandas"
@@ -560,6 +579,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pluggy"
+version = "1.6.0"
+source = { registry = "https://nexus.home/repository/pypi/simple" }
+sdist = { url = "https://nexus.home/repository/pypi/packages/pluggy/1.6.0/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3" }
+wheels = [
+    { url = "https://nexus.home/repository/pypi/packages/pluggy/1.6.0/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746" },
+]
+
+[[package]]
 name = "pydantic"
 version = "2.12.5"
 source = { registry = "https://nexus.home/repository/pypi/simple" }
@@ -614,6 +642,20 @@ wheels = [
 ]
 
 [[package]]
+name = "pydantic-settings"
+version = "2.12.0"
+source = { registry = "https://nexus.home/repository/pypi/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "typing-inspection" },
+]
+sdist = { url = "https://nexus.home/repository/pypi/packages/pydantic-settings/2.12.0/pydantic_settings-2.12.0.tar.gz", hash = "sha256:005538ef951e3c2a68e1c08b292b5f2e71490def8589d4221b95dab00dafcfd0" }
+wheels = [
+    { url = "https://nexus.home/repository/pypi/packages/pydantic-settings/2.12.0/pydantic_settings-2.12.0-py3-none-any.whl", hash = "sha256:fddb9fd99a5b18da837b29710391e945b1e30c135477f484084ee513adb93809" },
+]
+
+[[package]]
 name = "pydub"
 version = "0.25.1"
 source = { registry = "https://nexus.home/repository/pypi/simple" }
@@ -632,6 +674,22 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest"
+version = "9.0.2"
+source = { registry = "https://nexus.home/repository/pypi/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "iniconfig" },
+    { name = "packaging" },
+    { name = "pluggy" },
+    { name = "pygments" },
+]
+sdist = { url = "https://nexus.home/repository/pypi/packages/pytest/9.0.2/pytest-9.0.2.tar.gz", hash = "sha256:75186651a92bd89611d1d9fc20f0b4345fd827c41ccd5c299a868a05d70edf11" }
+wheels = [
+    { url = "https://nexus.home/repository/pypi/packages/pytest/9.0.2/pytest-9.0.2-py3-none-any.whl", hash = "sha256:711ffd45bf766d5264d487b917733b453d917afd2b0ad65223959f59089f875b" },
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 source = { registry = "https://nexus.home/repository/pypi/simple" }
@@ -641,6 +699,15 @@ dependencies = [
 sdist = { url = "https://nexus.home/repository/pypi/packages/python-dateutil/2.9.0.post0/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3" }
 wheels = [
     { url = "https://nexus.home/repository/pypi/packages/python-dateutil/2.9.0.post0/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.2.1"
+source = { registry = "https://nexus.home/repository/pypi/simple" }
+sdist = { url = "https://nexus.home/repository/pypi/packages/python-dotenv/1.2.1/python_dotenv-1.2.1.tar.gz", hash = "sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6" }
+wheels = [
+    { url = "https://nexus.home/repository/pypi/packages/python-dotenv/1.2.1/python_dotenv-1.2.1-py3-none-any.whl", hash = "sha256:b81ee9561e9ca4004139c6cbba3a238c32b03e4894671e181b671e8cb8425d61" },
 ]
 
 [[package]]
@@ -789,7 +856,7 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.23.0"
+version = "0.23.1"
 source = { registry = "https://nexus.home/repository/pypi/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -797,21 +864,21 @@ dependencies = [
     { name = "rich" },
     { name = "shellingham" },
 ]
-sdist = { url = "https://nexus.home/repository/pypi/packages/typer/0.23.0/typer-0.23.0.tar.gz", hash = "sha256:d8378833e47ada5d3d093fa20c4c63427cc4e27127f6b349a6c359463087d8cc" }
+sdist = { url = "https://nexus.home/repository/pypi/packages/typer/0.23.1/typer-0.23.1.tar.gz", hash = "sha256:2070374e4d31c83e7b61362fd859aa683576432fd5b026b060ad6b4cd3b86134" }
 wheels = [
-    { url = "https://nexus.home/repository/pypi/packages/typer/0.23.0/typer-0.23.0-py3-none-any.whl", hash = "sha256:79f4bc262b6c37872091072a3cb7cb6d7d79ee98c0c658b4364bdcde3c42c913" },
+    { url = "https://nexus.home/repository/pypi/packages/typer/0.23.1/typer-0.23.1-py3-none-any.whl", hash = "sha256:3291ad0d3c701cbf522012faccfbb29352ff16ad262db2139e6b01f15781f14e" },
 ]
 
 [[package]]
 name = "typer-slim"
-version = "0.23.0"
+version = "0.23.1"
 source = { registry = "https://nexus.home/repository/pypi/simple" }
 dependencies = [
     { name = "typer" },
 ]
-sdist = { url = "https://nexus.home/repository/pypi/packages/typer-slim/0.23.0/typer_slim-0.23.0.tar.gz", hash = "sha256:be8b60243df27cfee444c6db1b10a85f4f3e54d940574f31a996f78aa35a8254" }
+sdist = { url = "https://nexus.home/repository/pypi/packages/typer-slim/0.23.1/typer_slim-0.23.1.tar.gz", hash = "sha256:dfe92a6317030ee2380f65bf92e540d7c77fefcc689e10d585b4925b45b5e06a" }
 wheels = [
-    { url = "https://nexus.home/repository/pypi/packages/typer-slim/0.23.0/typer_slim-0.23.0-py3-none-any.whl", hash = "sha256:1d693daf22d998a7b1edab8413cdcb8af07254154ce3956c1664dc11b01e2f8b" },
+    { url = "https://nexus.home/repository/pypi/packages/typer-slim/0.23.1/typer_slim-0.23.1-py3-none-any.whl", hash = "sha256:8146d5df1eb89f628191c4c604c8464fa841885d0733c58e6e700ff0228adac5" },
 ]
 
 [[package]]

@@ -18,7 +18,7 @@ A modern, clean web interface for PaddleOCR-VL model built with Gradio.
 pip install -e .
 
 # Or install directly
-pip install gradio pillow requests
+pip install gradio pillow requests pydantic-settings
 ```
 
 ## Usage
@@ -46,7 +46,11 @@ python -m paddleocr_ui --debug
 python -m paddleocr_ui --help
 ```
 
-### Command Line Options
+### Configuration
+
+Configuration is provided via **command line arguments**.
+
+#### Command Line Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
