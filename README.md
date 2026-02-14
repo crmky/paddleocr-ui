@@ -54,7 +54,7 @@ Configuration is provided via **command line arguments**.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--api-url` | `http://paddleocr.home/layout-parsing` | API endpoint URL |
+| `--api-url` | `http://localhost/layout-parsing` | API endpoint URL |
 | `--api-key` | (none) | API key for authentication |
 | `--host` | `0.0.0.0` | Host to bind to |
 | `--port` | `7860` | Port to bind to |

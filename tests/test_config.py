@@ -13,7 +13,7 @@ class TestSettings:
         """Test that default values are set correctly."""
         settings = Settings()
 
-        assert settings.api_url == "http://paddleocr.home/layout-parsing"
+        assert settings.api_url == "http://localhost/layout-parsing"
         assert settings.api_key == ""
         assert settings.host == "0.0.0.0"
         assert settings.port == 7860
@@ -63,7 +63,7 @@ class TestCliSettings:
         with patch.object(sys, "argv", ["test"]):
             settings = get_cli_settings()
 
-        assert settings.api_url == "http://paddleocr.home/layout-parsing"
+        assert settings.api_url == "http://localhost/layout-parsing"
         assert settings.api_key == ""
         assert settings.host == "0.0.0.0"
         assert settings.port == 7860

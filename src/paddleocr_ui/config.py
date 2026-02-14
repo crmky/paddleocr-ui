@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # API Configuration
     api_url: str = Field(
-        default="http://paddleocr.home/layout-parsing",
+        default="http://localhost/layout-parsing",
         description="API endpoint URL",
     )
     api_key: str = Field(
