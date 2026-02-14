@@ -54,9 +54,15 @@ def image_to_base64_data_url(filepath: str) -> str:
 
 
 def file_to_base64(path_or_url: str) -> Tuple[str, int]:
-    """Convert file path or URL to base64 string and file type."""
+    """Convert file path or URL to base64 string and file type.
+    
+    Returns:
+        Tuple of (base64_string, file_type) where file_type is:
+        - 0 for PDF file
+        - 1 for image file
+    """
     if not path_or_url:
-        raise ValueError("Please upload an image first.")
+        raise ValueError("Please upload a file first.")
 
     is_url = isinstance(path_or_url, str) and path_or_url.startswith(("http://", "https://"))
     content: bytes
@@ -71,8 +77,8 @@ def file_to_base64(path_or_url: str) -> Tuple[str, int]:
         with open(path_or_url, "rb") as f:
             content = f.read()
 
-    # file_type: 1 for local file, 2 for URL
-    file_type = 2 if is_url else 1
+    # file_type: 0 for PDF, 1 for image (according to PaddleOCR API docs)
+    file_type = 0 if ext == ".pdf" else 1
     return base64.b64encode(content).decode("utf-8"), file_type
 
 
@@ -101,6 +107,13 @@ def render_image_preview(path_or_url: str) -> str:
     if not path_or_url:
         return ""
     
+    # Check if it's a PDF file
+    ext = os.path.splitext(path_or_url)[1].lower()
+    if ext == ".pdf":
+        # PDF preview - show a placeholder icon
+        return '''<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:#64748b;"><div style="width:80px;height:100px;background:linear-gradient(135deg,#f87171 0%,#dc2626 100%);border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,0.1);margin-bottom:12px;"><span style="color:white;font-size:24px;font-weight:bold;">PDF</span></div><span style="font-size:14px;">PDF Document</span></div>'''
+    
+    # Image preview
     is_url = isinstance(path_or_url, str) and path_or_url.startswith(("http://", "https://"))
     if is_url:
         src = path_or_url
@@ -226,62 +239,58 @@ def process_base64_image(base64_data: str) -> str:
 def process_api_response(result: Dict[str, Any]) -> Tuple[str, str, str]:
     """Process API response and extract markdown, visualization, and raw markdown.
     
-    Handles Base64 encoded images in the response.
+    Handles Base64 encoded images and supports multi-page PDFs.
     """
     layout_results = (result or {}).get("layoutParsingResults", [])
     if not layout_results:
         return "No content was recognized.", "<p>No visualization available.</p>", ""
 
-    page0 = layout_results[0] or {}
-    md_data = page0.get("markdown") or {}
-    md_text = md_data.get("text", "") or ""
-    md_images_map = md_data.get("images", {})
-
-    # Replace image placeholders with base64 data URLs
-    if md_images_map:
-        for placeholder_path, image_data in md_images_map.items():
-            # Handle both URL (string) and base64 (string) formats
-            if isinstance(image_data, str):
-                if image_data.startswith("http"):
-                    # It's a URL, use directly
-                    image_src = image_data
-                else:
-                    # It's base64 encoded data
-                    image_src = process_base64_image(image_data)
-                
-                md_text = md_text.replace(
-                    f'src="{placeholder_path}"', f'src="{image_src}"'
-                ).replace(
-                    f']({placeholder_path})', f']({image_src})'
-                )
-
-    # Process visualization images (base64 format)
-    output_html = "<p style='text-align:center; color:#888;'>No visualization image available.</p>"
-    out_imgs = page0.get("outputImages") or {}
+    all_md_parts = []
+    all_images = []
     
-    # Sort and process output images
-    processed_images = []
-    for key in sorted(out_imgs.keys()):
-        img_data = out_imgs[key]
-        if img_data:
-            if isinstance(img_data, str):
-                if img_data.startswith("http"):
-                    processed_images.append(img_data)
-                else:
-                    processed_images.append(process_base64_image(img_data))
+    # Process each page
+    for page_idx, page in enumerate(layout_results):
+        if not page:
+            continue
+        
+        md_data = page.get("markdown") or {}
+        md_text = md_data.get("text", "") or ""
+        md_images_map = md_data.get("images", {})
+        
+        # Replace image placeholders
+        if md_images_map:
+            for placeholder_path, image_data in md_images_map.items():
+                if isinstance(image_data, str):
+                    image_src = image_data if image_data.startswith("http") else process_base64_image(image_data)
+                    md_text = md_text.replace(f'src="{placeholder_path}"', f'src="{image_src}"').replace(f']({placeholder_path})', f']({image_src})')
+        
+        # Add page separator
+        if len(layout_results) > 1 and page_idx > 0:
+            all_md_parts.append(f"\n\n---\n\n**Page {page_idx + 1}**\n\n")
+        all_md_parts.append(md_text)
+        
+        # Collect visualization images
+        out_imgs = page.get("outputImages") or {}
+        for key in sorted(out_imgs.keys()):
+            img_data = out_imgs[key]
+            if img_data and isinstance(img_data, str):
+                all_images.append(img_data if img_data.startswith("http") else process_base64_image(img_data))
     
-    # Select main visualization image
-    output_image_src = None
-    if len(processed_images) >= 2:
-        output_image_src = processed_images[1]  # Usually the annotated version
-    elif processed_images:
-        output_image_src = processed_images[0]
-
-    if output_image_src:
-        output_html = f'<img src="{output_image_src}" alt="Detection Visualization" loading="lazy">'
-
-    md_text = escape_inequalities_in_math(md_text)
-    return md_text or "(Empty result)", output_html, md_text
+    # Combine markdown
+    combined_md = escape_inequalities_in_math("\n\n".join(all_md_parts))
+    
+    # Build visualization HTML
+    if all_images:
+        vis_parts = []
+        for idx, img_src in enumerate(all_images):
+            if len(layout_results) > 1:
+                vis_parts.append(f'<p style="text-align:center;color:#64748b;margin:8px 0;">Page {idx + 1}</p>')
+            vis_parts.append(f'<img src="{img_src}" alt="Page {idx + 1}" loading="lazy" style="max-width:100%;margin-bottom:16px;">')
+        output_html = "\n".join(vis_parts)
+    else:
+        output_html = "<p style='text-align:center;color:#888;'>No visualization available.</p>"
+    
+    return combined_md or "(Empty result)", output_html, combined_md
 
 
 def handle_document_parsing(
@@ -626,21 +635,19 @@ button.secondary:hover {
     line-height: 1.6 !important;
 }
 
-/* Visualization container */
+/* Visualization container - vertical scroll for multi-page */
 .result-tabs .vis-container {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 400px !important;
     max-height: calc(100vh - 280px) !important;
     padding: 20px !important;
-    overflow: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
 .result-tabs .vis-container img {
     max-width: 100% !important;
-    max-height: calc(100vh - 320px) !important;
-    object-fit: contain !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto 16px !important;
     border-radius: var(--radius-sm) !important;
     box-shadow: var(--shadow-md) !important;
 }
@@ -733,7 +740,7 @@ def create_app() -> Tuple[gr.Blocks, Dict[str, Any]]:
                             label="",
                             file_count="single",
                             type="filepath",
-                            file_types=["image"],
+                            file_types=["image", ".pdf"],
                             elem_classes=["file-upload"],
                         )
                         
@@ -1044,7 +1051,7 @@ def main():
         "show_error": True,
     })
     
-    app.queue(max_size=32).launch(**launch_kwargs)
+    app.launch(**launch_kwargs)
 
 
 if __name__ == "__main__":

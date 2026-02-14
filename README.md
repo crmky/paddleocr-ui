@@ -4,10 +4,11 @@ A modern, clean web interface for PaddleOCR-VL model built with Gradio.
 
 ## Features
 
-- 📑 **Document Parsing**: Full-page document analysis with layout detection
+- 📑 **Document Parsing**: Full-page document analysis with layout detection (supports images & multi-page PDFs)
 - 🎯 **Element Recognition**: Targeted recognition for text, formulas, tables, charts, and seals
 - 🔍 **Spotting**: Detect and locate specific elements in images
 - 🖼️ **Base64 Image Support**: Handles both URL and Base64-encoded images from API
+- 📄 **PDF Support**: Upload or drop PDF files in Document Parsing mode
 - 📱 **Responsive Design**: Modern UI that works on desktop and mobile
 
 ## Installation
