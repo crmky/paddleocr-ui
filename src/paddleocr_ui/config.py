@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     # Server Configuration
     host: str = Field(
-        default="0.0.0.0",
+        default="127.0.0.1",
         description="Host to bind to",
     )
     port: int = Field(

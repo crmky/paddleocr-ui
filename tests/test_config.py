@@ -15,7 +15,7 @@ class TestSettings:
 
         assert settings.api_url == "http://localhost/layout-parsing"
         assert settings.api_key == ""
-        assert settings.host == "0.0.0.0"
+        assert settings.host == "127.0.0.1"
         assert settings.port == 7860
         assert settings.share is False
         assert settings.debug is False
@@ -65,7 +65,7 @@ class TestCliSettings:
 
         assert settings.api_url == "http://localhost/layout-parsing"
         assert settings.api_key == ""
-        assert settings.host == "0.0.0.0"
+        assert settings.host == "127.0.0.1"
         assert settings.port == 7860
         assert settings.share is False
         assert settings.debug is False
