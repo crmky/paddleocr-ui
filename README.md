@@ -56,7 +56,7 @@ Configuration is provided via **command line arguments**.
 |--------|---------|-------------|
 | `--api-url` | `http://localhost/layout-parsing` | API endpoint URL |
 | `--api-key` | (none) | API key for authentication |
-| `--host` | `0.0.0.0` | Host to bind to |
+| `--host` | `127.0.0.1` | Host to bind to |
 | `--port` | `7860` | Port to bind to |
 | `--share` | (disabled) | Create a public shareable link |
 | `--debug` | (disabled) | Enable debug mode |

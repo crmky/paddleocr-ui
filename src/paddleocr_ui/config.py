@@ -1,6 +1,6 @@
 """Configuration management using pydantic-settings."""
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,6 +44,12 @@ class Settings(BaseSettings):
         default=False,
         description="Enable debug mode to log API requests and responses",
     )
+
+    @field_validator("api_url")
+    @classmethod
+    def validate_api_url(cls, v: str) -> str:
+        """Remove trailing slash from API URL to avoid double slashes."""
+        return v.rstrip("/") if v else v
 
     def get_headers(self) -> dict:
         """Get HTTP headers with optional API key."""

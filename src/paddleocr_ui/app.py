@@ -531,6 +531,8 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                                     language="markdown",
                                     elem_classes=["code-preview"],
                                 )
+                        # Hidden component for visualization output (3rd return value)
+                        vis_hidden_vl = gr.HTML(visible=False)
                 
                 # Event handlers
                 def toggle_buttons(file_path):
@@ -570,7 +572,7 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                     btn.click(
                         fn=handle_vl_wrapper,
                         inputs=[file_vl, gr.State(prompt)],
-                        outputs=[md_preview_vl, md_raw_vl, gr.HTML(visible=False)],
+                        outputs=[md_preview_vl, md_raw_vl, vis_hidden_vl],
                     )
             
             # ==================== Spotting Tab ====================

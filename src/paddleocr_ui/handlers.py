@@ -67,7 +67,10 @@ def handle_targeted_recognition(
 
     # Special handling for spotting mode
     if label == "spotting":
-        page0 = (result.get("layoutParsingResults") or [])[0] or {}
+        layout_results = result.get("layoutParsingResults") or []
+        if not layout_results:
+            return md_preview, json.dumps({"error": "No results"}, indent=2), vis_html
+        page0 = layout_results[0] or {}
         pruned = page0.get("prunedResult") or {}
         spotting_res = pruned.get("spotting_res") or {}
         md_raw = json.dumps(spotting_res, ensure_ascii=False, indent=2)
