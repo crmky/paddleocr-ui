@@ -14,6 +14,7 @@ def handle_document_parsing(
     use_chart_recognition: bool,
     use_doc_unwarping: bool,
     use_doc_orientation_classify: bool,
+    restructure_pages: bool,
     settings: Settings | None = None,
 ) -> Tuple[str, str, str]:
     """Handle document parsing mode."""
@@ -27,6 +28,9 @@ def handle_document_parsing(
         use_chart_recognition=use_chart_recognition,
         use_doc_unwarping=use_doc_unwarping,
         use_doc_orientation_classify=use_doc_orientation_classify,
+        restructure_pages=restructure_pages,
+        merge_tables=restructure_pages,
+        relevel_titles=restructure_pages,
         settings=settings,
     )
     result = data.get("result", {})
@@ -63,7 +67,9 @@ def handle_targeted_recognition(
     result = data.get("result", {})
 
     md_preview, _, md_raw = process_api_response(result)
-    vis_html = "<p style='text-align:center; color:#888;'>No visualization available.</p>"
+    vis_html = (
+        "<p style='text-align:center; color:#888;'>No visualization available.</p>"
+    )
 
     # Special handling for spotting mode
     if label == "spotting":
@@ -84,6 +90,7 @@ def handle_targeted_recognition(
                     vis_html = f'<img src="{img_data}" alt="Spotting Visualization" loading="lazy">'
                 else:
                     from paddleocr_ui.utils import process_base64_image
+
                     img_src = process_base64_image(img_data)
                     vis_html = f'<img src="{img_src}" alt="Spotting Visualization" loading="lazy">'
 

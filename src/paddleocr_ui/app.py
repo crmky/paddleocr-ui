@@ -171,9 +171,23 @@ button.secondary:hover {
 
 /* Checkbox styles */
 .checkbox-row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+    grid-auto-rows: 1fr !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+}
+
+.checkbox-row > div {
+    width: 100% !important;
+    height: 100% !important;
     display: flex !important;
-    gap: 16px !important;
-    flex-wrap: wrap !important;
+}
+
+.checkbox-row .gr-checkbox {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
 }
 
 .checkbox-row label {
@@ -184,6 +198,11 @@ button.secondary:hover {
     cursor: pointer !important;
     transition: all 0.2s ease !important;
     font-size: 0.9rem !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
 }
 
 .checkbox-row label:hover {
@@ -311,7 +330,7 @@ button.secondary:hover {
     }
     
     .checkbox-row {
-        flex-direction: column !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important;
     }
 }
@@ -364,17 +383,17 @@ def update_preview_visibility(path_or_url: str | None) -> Dict:
 
 def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, Any]]:
     """Create and configure the Gradio application.
-    
+
     Args:
         settings: Application settings. If None, uses default settings.
-        
+
     Returns:
         A tuple of (demo, launch_kwargs) where launch_kwargs contains
         theme, css, and other parameters for launch() method.
     """
     if settings is None:
         settings = Settings()
-    
+
     # Gradio 6.0+: css and theme go to launch(), title stays in Blocks()
     launch_kwargs = {
         "css": CUSTOM_CSS,
@@ -385,13 +404,11 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
             font=["Inter", "system-ui", "sans-serif"],
         ),
     }
-    
+
     with gr.Blocks(
         title="PaddleOCR-VL Web UI",
     ) as demo:
-        
         with gr.Tabs():
-            
             # ==================== Document Parsing Tab ====================
             with gr.Tab("📑 Document Parsing"):
                 with gr.Row():
@@ -405,15 +422,17 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                             file_types=["image", ".pdf"],
                             elem_classes=["file-upload"],
                         )
-                        
+
                         preview_doc = gr.HTML(
                             value="",
                             elem_classes=["image-preview-container"],
                             visible=False,
                         )
-                        
-                        gr.Markdown("*Upload a document image for full-page parsing with layout detection*")
-                        
+
+                        gr.Markdown(
+                            "*Upload a document image for full-page parsing with layout detection*"
+                        )
+
                         with gr.Row():
                             btn_parse = gr.Button(
                                 "▶️ Parse Document",
@@ -421,7 +440,7 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                                 elem_classes=["primary"],
                                 interactive=False,
                             )
-                        
+
                         gr.Markdown("### Options")
                         with gr.Row(elem_classes=["checkbox-row"]):
                             chart_switch = gr.Checkbox(
@@ -436,7 +455,11 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                                 label="🧭 Orientation Detection",
                                 value=False,
                             )
-                    
+                            restructure_switch = gr.Checkbox(
+                                label="📑 Restructure Pages",
+                                value=False,
+                            )
+
                     # Right column - Results
                     with gr.Column(scale=7):
                         gr.Markdown("### Results")
@@ -455,27 +478,29 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                                     language="markdown",
                                     elem_classes=["code-preview"],
                                 )
-                
+
                 # Event handlers
                 def toggle_button(file_path):
                     """Enable button when file is uploaded, disable when cleared."""
                     return gr.update(interactive=bool(file_path))
-                
+
                 file_doc.change(
                     fn=update_preview_visibility,
                     inputs=file_doc,
                     outputs=preview_doc,
                 )
-                
+
                 file_doc.change(
                     fn=toggle_button,
                     inputs=file_doc,
                     outputs=btn_parse,
                 )
-                
-                def handle_doc_wrapper(path, chart, unwarp, orient):
-                    return handle_document_parsing(path, chart, unwarp, orient, settings)
-                
+
+                def handle_doc_wrapper(path, chart, unwarp, orient, restructure):
+                    return handle_document_parsing(
+                        path, chart, unwarp, orient, restructure, settings
+                    )
+
                 btn_parse.click(
                     fn=handle_doc_wrapper,
                     inputs=[
@@ -483,10 +508,11 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                         chart_switch,
                         unwarp_switch,
                         orient_switch,
+                        restructure_switch,
                     ],
                     outputs=[md_preview_doc, vis_image_doc, md_raw_doc],
                 )
-            
+
             # ==================== Element Recognition Tab ====================
             with gr.Tab("🎯 Element Recognition"):
                 with gr.Row():
@@ -500,23 +526,35 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                             file_types=["image"],
                             elem_classes=["file-upload"],
                         )
-                        
+
                         preview_vl = gr.HTML(
                             value="",
                             elem_classes=["image-preview-container"],
                             visible=False,
                         )
-                        
-                        gr.Markdown("*Upload an image element for specific recognition*")
-                        
+
+                        gr.Markdown(
+                            "*Upload an image element for specific recognition*"
+                        )
+
                         gr.Markdown("### Recognition Type")
                         with gr.Row(elem_classes=["button-grid"]):
-                            btn_ocr = gr.Button("📝 Text", variant="secondary", interactive=False)
-                            btn_formula = gr.Button("📐 Formula", variant="secondary", interactive=False)
-                            btn_table = gr.Button("📊 Table", variant="secondary", interactive=False)
-                            btn_chart = gr.Button("📈 Chart", variant="secondary", interactive=False)
-                            btn_seal = gr.Button("🔖 Seal", variant="secondary", interactive=False)
-                    
+                            btn_ocr = gr.Button(
+                                "📝 Text", variant="secondary", interactive=False
+                            )
+                            btn_formula = gr.Button(
+                                "📐 Formula", variant="secondary", interactive=False
+                            )
+                            btn_table = gr.Button(
+                                "📊 Table", variant="secondary", interactive=False
+                            )
+                            btn_chart = gr.Button(
+                                "📈 Chart", variant="secondary", interactive=False
+                            )
+                            btn_seal = gr.Button(
+                                "🔖 Seal", variant="secondary", interactive=False
+                            )
+
                     # Right column - Results
                     with gr.Column(scale=7):
                         gr.Markdown("### Results")
@@ -533,29 +571,33 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                                 )
                         # Hidden component for visualization output (3rd return value)
                         vis_hidden_vl = gr.HTML(visible=False)
-                
+
                 # Event handlers
                 def toggle_buttons(file_path):
                     """Enable buttons when file is uploaded, disable when cleared."""
                     has_file = bool(file_path)
                     return [gr.update(interactive=has_file) for _ in range(5)]
-                
+
                 file_vl.change(
                     fn=update_preview_visibility,
                     inputs=file_vl,
                     outputs=preview_vl,
                 )
-                
+
                 recognition_buttons = [
-                    btn_ocr, btn_formula, btn_table, btn_chart, btn_seal
+                    btn_ocr,
+                    btn_formula,
+                    btn_table,
+                    btn_chart,
+                    btn_seal,
                 ]
-                
+
                 file_vl.change(
                     fn=toggle_buttons,
                     inputs=file_vl,
                     outputs=recognition_buttons,
                 )
-                
+
                 # Recognition button click handlers
                 recognition_mapping = [
                     (btn_ocr, "Text Recognition"),
@@ -564,17 +606,17 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                     (btn_chart, "Chart Recognition"),
                     (btn_seal, "Seal Recognition"),
                 ]
-                
+
                 def handle_vl_wrapper(path, prompt):
                     return handle_targeted_recognition(path, prompt, settings)
-                
+
                 for btn, prompt in recognition_mapping:
                     btn.click(
                         fn=handle_vl_wrapper,
                         inputs=[file_vl, gr.State(prompt)],
                         outputs=[md_preview_vl, md_raw_vl, vis_hidden_vl],
                     )
-            
+
             # ==================== Spotting Tab ====================
             with gr.Tab("👁️ Spotting"):
                 with gr.Row():
@@ -588,22 +630,24 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                             file_types=["image"],
                             elem_classes=["file-upload"],
                         )
-                        
+
                         preview_spot = gr.HTML(
                             value="",
                             elem_classes=["image-preview-container"],
                             visible=False,
                         )
-                        
-                        gr.Markdown("*Detect and locate specific elements in the image*")
-                        
+
+                        gr.Markdown(
+                            "*Detect and locate specific elements in the image*"
+                        )
+
                         with gr.Row():
                             btn_run_spot = gr.Button(
                                 "▶️ Run Spotting",
                                 variant="primary",
                                 interactive=False,
                             )
-                    
+
                     # Right column - Results
                     with gr.Column(scale=7):
                         gr.Markdown("### Results")
@@ -617,36 +661,35 @@ def create_app(settings: Settings | None = None) -> Tuple[gr.Blocks, Dict[str, A
                                     language="json",
                                     elem_classes=["code-preview"],
                                 )
-                
+
                 # Event handlers
                 def toggle_spot_button(file_path):
                     """Enable button when file is uploaded, disable when cleared."""
                     return gr.update(interactive=bool(file_path))
-                
+
                 file_spot.change(
                     fn=update_preview_visibility,
                     inputs=file_spot,
                     outputs=preview_spot,
                 )
-                
+
                 file_spot.change(
                     fn=toggle_spot_button,
                     inputs=file_spot,
                     outputs=btn_run_spot,
                 )
-                
+
                 def run_spotting_wrapper(file_path):
                     """Wrapper for spotting mode."""
                     _, json_res, vis_res = handle_targeted_recognition(
                         file_path, "Spotting", settings
                     )
                     return vis_res, json_res
-                
+
                 btn_run_spot.click(
                     fn=run_spotting_wrapper,
                     inputs=file_spot,
                     outputs=[vis_image_spot, json_spot],
                 )
 
-    
     return demo, launch_kwargs
